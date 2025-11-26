@@ -83,6 +83,10 @@ function set_preferred_mirrors {
 
 set_preferred_mirrors
 
+# ---------------------- 3.1. Установка шрифтов для Live-среды --------
+echo "Установка шрифтов для корректного отображения русского и английского текста..."
+pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm || echo "Предупреждение: не удалось установить шрифты в Live-среде"
+
 # ---------------------- 4. Разметка и форматирование -----------------
 
 echo "Запуск автоматической разметки диска \$DISK..."
@@ -143,6 +147,10 @@ sed -i 's/^#\(en_US.UTF-8 UTF-8\)$/\1/' /etc/locale.gen
 sed -i 's/^#\(ru_RU.UTF-8 UTF-8\)$/\1/' /etc/locale.gen
 locale-gen
 
+# 6.3.1. Установка шрифтов для русского и английского языков (ранняя установка)
+echo "Установка шрифтов для корректного отображения русского и английского текста..."
+pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-fira-code ttf-jetbrains-mono --noconfirm
+
 # 6.4. Настройка GRUB 
 pacman -S grub efibootmgr --noconfirm
 rm -rf /boot/grub/*
@@ -162,7 +170,6 @@ pacman -S hyprland wayland-protocols xdg-desktop-portal-hyprland polkit-gnome \
          thunar thunar-archive-plugin file-roller \
          pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber \
          alsa-utils pulseaudio-alsa \
-         ttf-fira-code ttf-jetbrains-mono noto-fonts noto-fonts-cjk noto-fonts-emoji \
          open-vm-tools xf86-video-vmware --noconfirm
 
 # Маскировка reflector.service для предотвращения зависания
