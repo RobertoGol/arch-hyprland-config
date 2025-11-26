@@ -59,20 +59,20 @@ ROOT_PART="${DISK}3"
 # ---------------------- 3. Настройка зеркал --------------------------
 
 MIRROR_LIST=(
-    "https://mirror.yandex.ru/archlinux/\$repo/os/\$arch"
-    "https://geo.mirror.pkgbuild.com/\$repo/os/\$arch"
-    "https://arch.mirror.constant.com/\$repo/os/\$arch"
+    'https://mirror.yandex.ru/archlinux/$repo/os/$arch'
+    'https://geo.mirror.pkgbuild.com/$repo/os/$arch'
+    'https://arch.mirror.constant.com/$repo/os/$arch'
 )
 
 function set_preferred_mirrors {
     echo "Настройка списка зеркал для ускоренной загрузки..."
 
-    MIRROR_CONTENT=""
+    # Очищаем старый mirrorlist и создаем новый
+    > /etc/pacman.d/mirrorlist
+    
     for MIRROR_URL in "${MIRROR_LIST[@]}"; do
-        MIRROR_CONTENT+="Server = ${MIRROR_URL}"$'\n'
+        echo "Server = ${MIRROR_URL}" >> /etc/pacman.d/mirrorlist
     done
-
-    echo "$MIRROR_CONTENT" > /etc/pacman.d/mirrorlist
 
     pacman-key --init
     pacman-key --populate archlinux
@@ -127,9 +127,9 @@ arch-chroot /mnt /bin/bash <<EOF
 
 # 6.1. Установка рабочего зеркала в CHROOT
 MIRROR_LIST=(
-    "https://mirror.yandex.ru/archlinux/\$repo/os/\$arch"
-    "https://geo.mirror.pkgbuild.com/\$repo/os/\$arch"
-    "https://arch.mirror.constant.com/\$repo/os/\$arch"
+    'https://mirror.yandex.ru/archlinux/$repo/os/$arch'
+    'https://geo.mirror.pkgbuild.com/$repo/os/$arch'
+    'https://arch.mirror.constant.com/$repo/os/$arch'
 )
 $(declare -f set_preferred_mirrors)
 set_preferred_mirrors
