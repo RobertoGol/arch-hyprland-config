@@ -68,11 +68,11 @@ function set_preferred_mirrors {
     echo "Настройка списка зеркал для ускоренной загрузки..."
 
     MIRROR_CONTENT=""
-    for MIRROR_URL in "\${MIRROR_LIST[@]}"; do
-        MIRROR_CONTENT+="Server = \$MIRROR_URL\n"
+    for MIRROR_URL in "${MIRROR_LIST[@]}"; do
+        MIRROR_CONTENT+="Server = ${MIRROR_URL}"$'\n'
     done
 
-    echo -e "\$MIRROR_CONTENT" > /etc/pacman.d/mirrorlist
+    echo "$MIRROR_CONTENT" > /etc/pacman.d/mirrorlist
 
     pacman-key --init
     pacman-key --populate archlinux
@@ -126,6 +126,11 @@ echo "Переход в CHROOT для настройки..."
 arch-chroot /mnt /bin/bash <<EOF
 
 # 6.1. Установка рабочего зеркала в CHROOT
+MIRROR_LIST=(
+    "https://mirror.yandex.ru/archlinux/\$repo/os/\$arch"
+    "https://geo.mirror.pkgbuild.com/\$repo/os/\$arch"
+    "https://arch.mirror.constant.com/\$repo/os/\$arch"
+)
 $(declare -f set_preferred_mirrors)
 set_preferred_mirrors
 
