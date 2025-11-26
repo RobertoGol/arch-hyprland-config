@@ -27,10 +27,10 @@
 В Live-среде Arch выполните **одну команду**:
 
 ```bash
-pacman -Sy git --noconfirm && \
-git clone https://github.com/RobertoGol/arch-hyprland-config.git && \
-cd arch-hyprland-config && \
-chmod +x all_in_one_install.sh && \
+pacman -Sy git --noconfirm && 
+git clone https://github.com/RobertoGol/arch-hyprland-config.git && 
+cd arch-hyprland-config && 
+chmod +x all_in_one_install.sh && 
 ./all_in_one_install.sh
 ```
 
