@@ -1,0 +1,78 @@
+* {
+    font-family: "JetBrains Mono", "Noto Sans", sans-serif;
+    font-size: 13px;
+}
+
+window {
+    background-color: rgba(26, 27, 38, 0.95);
+    border: 2px solid rgba(122, 162, 247, 0.5);
+    border-radius: 12px;
+    color: #c0caf5;
+}
+
+#input {
+    margin: 5px;
+    border: 2px solid rgba(122, 162, 247, 0.3);
+    border-radius: 8px;
+    background-color: rgba(36, 40, 59, 0.8);
+    color: #c0caf5;
+    padding: 8px;
+}
+
+#input:focus {
+    border: 2px solid #7aa2f7;
+}
+
+#inner-box {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#outer-box {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 5px;
+    border: none;
+    color: #c0caf5;
+}
+
+#entry {
+    background-color: transparent;
+    border: none;
+    padding: 5px;
+    border-radius: 6px;
+}
+
+#entry:selected {
+    background-color: rgba(122, 162, 247, 0.3);
+    border: 1px solid #7aa2f7;
+}
+
+#entry:selected #text {
+    color: #7aa2f7;
+    font-weight: bold;
+}
+
+#text:selected {
+    background-color: transparent;
+    color: #7aa2f7;
+}
+
+#img {
+    margin-right: 10px;
+}
+
+#img:selected {
+    background-color: transparent;
+}
+
