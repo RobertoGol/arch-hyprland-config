@@ -51,10 +51,25 @@ echo "Рекомендуется сменить эти пароли после �
 HOST_NAME="arch-hypr-rj"
 echo "Имя хоста по умолчанию:           $HOST_NAME"
 
-DISK="/dev/sda"
+echo "Доступные диски:"
+lsblk -d -o NAME,SIZE,MODEL
+
+DEFAULT_DISK="/dev/sda"
+read -rp "Введите устройство диска для установки [${DEFAULT_DISK}]: " USER_DISK
+DISK="${USER_DISK:-$DEFAULT_DISK}"
+
+if [[ ! -b "$DISK" ]]; then
+    echo "Ошибка: устройство $DISK не найдено."
+    exit 1
+fi
+
 EFI_PART="${DISK}1"
 SWAP_PART="${DISK}2"
 ROOT_PART="${DISK}3"
+
+# Определяем виртуализацию (важно для VMware: у Live-ISO очень маленький overlay)
+VIRT_TYPE="$(systemd-detect-virt 2>/dev/null || echo "unknown")"
+PACMAN_CACHE_REDIR=0
 
 # ---------------------- 3. Настройка зеркал --------------------------
 
@@ -76,16 +91,9 @@ function set_preferred_mirrors {
 
     pacman-key --init
     pacman-key --populate archlinux
-    pacman -Syyu --noconfirm
 
     echo "Зеркала успешно установлены и синхронизированы."
 }
-
-set_preferred_mirrors
-
-# ---------------------- 3.1. Установка шрифтов для Live-среды --------
-echo "Установка шрифтов для корректного отображения русского и английского текста..."
-pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji --noconfirm || echo "Предупреждение: не удалось установить шрифты в Live-среде"
 
 # ---------------------- 4. Разметка и форматирование -----------------
 
@@ -110,6 +118,16 @@ mount "\$ROOT_PART" /mnt
 mkdir -p /mnt/boot
 mount "\$EFI_PART" /mnt/boot
 swapon "\$SWAP_PART"
+
+if [[ "$VIRT_TYPE" == "vmware" ]]; then
+    echo "Обнаружена виртуализация VMware. Перенаправляем кэши pacman на целевой диск..."
+    mkdir -p /var/cache/pacman/pkg
+    mkdir -p /mnt/var/cache/pacman/pkg
+    mount --bind /mnt/var/cache/pacman/pkg /var/cache/pacman/pkg
+    PACMAN_CACHE_REDIR=1
+fi
+
+set_preferred_mirrors
 
 echo "Установка базовых пакетов..."
 pacstrap /mnt base linux linux-firmware nano git arch-install-scripts sudo
@@ -182,7 +200,6 @@ systemctl mask reflector.service
 
 systemctl enable NetworkManager
 systemctl enable vmtoolsd
-systemctl enable pipewire pipewire-pulse wireplumber
 
 # 6.7. Пользователи и Пароли
 echo "Настройка пароля root..."
@@ -205,16 +222,16 @@ sudo -u "$USER_NAME" bash -c "cd /tmp && git clone https://aur.archlinux.org/yay
 echo "Настройка оптимизаций системы..."
 
 # Оптимизация swappiness для лучшей производительности
-echo "vm.swappiness=10" >> /etc/sysctl.d/99-sysctl.conf
-echo "vm.vfs_cache_pressure=50" >> /etc/sysctl.d/99-sysctl.conf
-echo "vm.dirty_ratio=15" >> /etc/sysctl.d/99-sysctl.conf
-echo "vm.dirty_background_ratio=5" >> /etc/sysctl.d/99-sysctl.conf
-
-# Оптимизация сетевых параметров
-echo "net.core.rmem_max=16777216" >> /etc/sysctl.d/99-sysctl.conf
-echo "net.core.wmem_max=16777216" >> /etc/sysctl.d/99-sysctl.conf
-echo "net.ipv4.tcp_rmem=4096 87380 16777216" >> /etc/sysctl.d/99-sysctl.conf
-echo "net.ipv4.tcp_wmem=4096 65536 16777216" >> /etc/sysctl.d/99-sysctl.conf
+cat > /etc/sysctl.d/99-rj-optimizations.conf <<'SYSCTL'
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+vm.dirty_ratio=15
+vm.dirty_background_ratio=5
+net.core.rmem_max=16777216
+net.core.wmem_max=16777216
+net.ipv4.tcp_rmem=4096 87380 16777216
+net.ipv4.tcp_wmem=4096 65536 16777216
+SYSCTL
 
 # Оптимизация I/O scheduler (для SSD/NVMe)
 cat > /etc/udev/rules.d/60-ioschedulers.rules << 'IOEOF'
@@ -223,7 +240,7 @@ ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]", ATTR{queue/scheduler}="none"
 IOEOF
 
 # Настройка лимитов для пользователя
-cat >> /etc/security/limits.conf << 'LIMITEOF'
+cat > /etc/security/limits.d/99-rj-limits.conf << 'LIMITEOF'
 * soft nofile 65536
 * hard nofile 65536
 * soft nproc 32768
@@ -310,6 +327,10 @@ echo "Не забудьте настроить порядок загрузки �
 echo "чтобы загрузиться с диска, а не с ISO!"
 echo "================================================"
 
+if [[ "$PACMAN_CACHE_REDIR" -eq 1 ]]; then
+    echo "Отмонтирование перенаправленных кэшей pacman..."
+    umount /var/cache/pacman/pkg || true
+fi
 umount -R /mnt
 swapoff "\$SWAP_PART" || true
 reboot
