@@ -95,7 +95,36 @@ function set_preferred_mirrors {
     echo "Зеркала успешно установлены и синхронизированы."
 }
 
+# Грейсфул-отмонтирование всех разделов выбранного диска перед разметкой
+function cleanup_disk_mounts {
+    local target_disk="$1"
+    echo "Проверяем активные монтирования для $target_disk..."
+
+    mapfile -t TARGET_PARTS < <(lsblk -ln -o NAME "$target_disk" | awk 'NR>1 {print "/dev/" $1}')
+
+    for part in "${TARGET_PARTS[@]}"; do
+        [[ -z "$part" ]] && continue
+
+        if grep -q "^$part " /proc/swaps 2>/dev/null; then
+            echo "  swapoff $part"
+            swapoff "$part" || true
+        fi
+
+        if mount | grep -q "^$part " 2>/dev/null; then
+            echo "  umount $part"
+            umount -f "$part" || true
+        fi
+    done
+
+    if mountpoint -q /mnt 2>/dev/null; then
+        echo "  umount -R /mnt"
+        umount -R /mnt || true
+    fi
+}
+
 # ---------------------- 4. Разметка и форматирование -----------------
+
+cleanup_disk_mounts "$DISK"
 
 echo "Запуск автоматической разметки диска $DISK..."
 sfdisk --delete "$DISK" || true
@@ -103,6 +132,8 @@ echo "label: gpt
 size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name=EFI
 size=2GiB, type=0657FD6D-A4E3-40A1-8C5C-9A5C0C2D8B9A, name=SWAP
 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=ROOT" | sfdisk "$DISK"
+
+partprobe "$DISK" || true
 
 sleep 2
 
