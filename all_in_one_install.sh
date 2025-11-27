@@ -250,24 +250,24 @@ LIMITEOF
 # 6.9. Копирование пользовательских конфигов (dotfiles)
 CONFIG_SRC="/arch-hyprland-config/config"
 USER_HOME="/home/$USER_NAME"
-USER_CONFIG="\$USER_HOME/.config"
+USER_CONFIG="$USER_HOME/.config"
 
-if [ -d "\$CONFIG_SRC" ]; then
-    echo "Копирование конфигов из \$CONFIG_SRC в \$USER_CONFIG ..."
-    mkdir -p "\$USER_CONFIG"
-    cp -r "\$CONFIG_SRC/"* "\$USER_CONFIG/" 2>/dev/null || true
+if [ -d "$CONFIG_SRC" ]; then
+    echo "Копирование конфигов из $CONFIG_SRC в $USER_CONFIG ..."
+    mkdir -p "$USER_CONFIG"
+    cp -r "$CONFIG_SRC/"* "$USER_CONFIG/" 2>/dev/null || true
     
     # Создаём placeholder для обоев, если его нет
-    if [ ! -f "\$USER_CONFIG/hypr/wallpaper.png" ]; then
+    if [ ! -f "$USER_CONFIG/hypr/wallpaper.png" ]; then
         echo "Создание placeholder для обоев..."
-        mkdir -p "\$USER_CONFIG/hypr"
+        mkdir -p "$USER_CONFIG/hypr"
         # Создаём простой градиентный фон через ImageMagick (если установлен) или оставляем пустым
         # Пользователь может заменить wallpaper.png на свой
     fi
     
     echo "Конфиги успешно скопированы."
 else
-    echo "Папка \$CONFIG_SRC не найдена. Пропускаю копирование конфигов."
+    echo "Папка $CONFIG_SRC не найдена. Пропускаю копирование конфигов."
     echo "Вы сможете скопировать их вручную после загрузки."
 fi
 
@@ -288,10 +288,10 @@ else
 fi
 
 # 6.10. Автозапуск fastfetch и ASCII-баннера при входе пользователя
-PROFILE_FILE="\$USER_HOME/.bash_profile"
+PROFILE_FILE="$USER_HOME/.bash_profile"
 
 echo "Настройка авто-запуска fastfetch и баннера RJ powered..."
-cat << 'EOPROFILE' >> "\$PROFILE_FILE"
+cat << 'EOPROFILE' >> "$PROFILE_FILE"
 
 if command -v fastfetch >/dev/null 2>&1; then
   fastfetch
@@ -313,7 +313,7 @@ RJ
 EOPROFILE
 
 # Права на домашний каталог и профиль пользователя
-chown -R "$USER_NAME:users" "\$USER_HOME"
+chown -R "$USER_NAME:users" "$USER_HOME"
 
 echo "Конфигурация CHROOT завершена."
 
@@ -332,7 +332,7 @@ if [[ "$PACMAN_CACHE_REDIR" -eq 1 ]]; then
     umount /var/cache/pacman/pkg || true
 fi
 umount -R /mnt
-swapoff "\$SWAP_PART" || true
+swapoff "$SWAP_PART" || true
 reboot
 
 
