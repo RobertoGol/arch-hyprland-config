@@ -97,27 +97,27 @@ function set_preferred_mirrors {
 
 # ---------------------- 4. Разметка и форматирование -----------------
 
-echo "Запуск автоматической разметки диска \$DISK..."
-sfdisk --delete "\$DISK" || true
+echo "Запуск автоматической разметки диска $DISK..."
+sfdisk --delete "$DISK" || true
 echo "label: gpt
 size=512MiB, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name=EFI
 size=2GiB, type=0657FD6D-A4E3-40A1-8C5C-9A5C0C2D8B9A, name=SWAP
-type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=ROOT" | sfdisk "\$DISK"
+type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=ROOT" | sfdisk "$DISK"
 
 sleep 2
 
 echo "Форматирование разделов..."
-mkfs.fat -F 32 "\$EFI_PART"
-mkswap "\$SWAP_PART"
-mkfs.ext4 "\$ROOT_PART"
+mkfs.fat -F 32 "$EFI_PART"
+mkswap "$SWAP_PART"
+mkfs.ext4 "$ROOT_PART"
 
 # ---------------------- 5. Монтирование и базовая система -----------
 
 echo "Монтирование разделов и активация SWAP..."
-mount "\$ROOT_PART" /mnt
+mount "$ROOT_PART" /mnt
 mkdir -p /mnt/boot
-mount "\$EFI_PART" /mnt/boot
-swapon "\$SWAP_PART"
+mount "$EFI_PART" /mnt/boot
+swapon "$SWAP_PART"
 
 if [[ "$VIRT_TYPE" == "vmware" ]]; then
     echo "Обнаружена виртуализация VMware. Перенаправляем кэши pacman на целевой диск..."
@@ -136,7 +136,7 @@ echo "Генерация fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 echo "Копирование репозитория в новую систему..."
-cp -r "\$REPO_SRC" /mnt/arch-hyprland-config
+cp -r "$REPO_SRC" /mnt/arch-hyprland-config
 
 # ---------------------- 6. Конфигурация в chroot ---------------------
 
